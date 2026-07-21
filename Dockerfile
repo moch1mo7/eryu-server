@@ -3,15 +3,16 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# 复制服务端代码 + 前端
+# 复制服务端代码 + 前端 + 存档同步脚本
 COPY server/eryu.py /app/
 COPY server/analyze_song.py /app/
 COPY client/ /app/client/
+COPY sync_save.py /app/
 
 # 数据目录
 RUN mkdir -p /app/data/music_cache
 
-# 启动脚本：从环境变量写入配置 → 启动服务
+# 启动脚本：写配置 → 启动 sync_save（下载存档后拉起 eryu，退出时上传）
 RUN echo '#!/bin/bash\n\
 if [ -n "$MUSIC_U" ]; then\n\
   echo "MUSIC_U=$MUSIC_U" > /app/.netease_cred\n\
@@ -23,7 +24,7 @@ if [ -n "$ERYU_AUTH_TOKEN" ]; then\n\
   echo "$ERYU_AUTH_TOKEN" > /app/.secret\n\
   echo "[eryu] Auth token configured"\n\
 fi\n\
-exec python /app/eryu.py\n\
+exec python /app/sync_save.py\n\
 ' > /app/start.sh && chmod +x /app/start.sh
 
 EXPOSE 9090
