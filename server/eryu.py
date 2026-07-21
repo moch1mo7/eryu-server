@@ -412,6 +412,10 @@ class EryuHandler(BaseHTTPRequestHandler):
             self._handle_music_playlists_add_song(body)
         elif path == "/music/playlists/remove-song":
             self._handle_music_playlists_remove_song(body)
+        elif path == "/music/playlists/reorder":
+            self._handle_music_playlists_reorder(body)
+        elif path == "/music/playlists/cover":
+            self._handle_music_playlists_cover(body)
         elif path == "/music/recent/add":
             self._handle_music_recent_add(body)
         elif path == "/music/memory":
@@ -692,6 +696,44 @@ class EryuHandler(BaseHTTPRequestHandler):
         data["playlists"] = [p for p in data["playlists"] if p["id"] != pid]
         self._save_music_data(data)
         self._send_json(200, {"ok": True})
+
+    def _handle_music_playlists_reorder(self, body: dict):
+        pid = body.get("playlistId", "")
+        song_ids = body.get("songIds", [])
+        if not pid or not song_ids:
+            self._send_json(400, {"error": "missing playlistId or songIds"})
+            return
+        data = self._load_music_data()
+        for pl in data["playlists"]:
+            if pl["id"] == pid:
+                ordered = []
+                for sid in song_ids:
+                    for s in pl["songs"]:
+                        if s.get("songId") == sid:
+                            ordered.append(s)
+                            break
+                pl["songs"] = ordered
+                self._save_music_data(data)
+                if pid == "liked":
+                    self._save_playlist(ordered)
+                self._send_json(200, {"ok": True, "songs": ordered})
+                return
+        self._send_json(404, {"error": "playlist not found"})
+
+    def _handle_music_playlists_cover(self, body: dict):
+        pid = body.get("playlistId", "")
+        cover_url = body.get("coverUrl", "")
+        if not pid:
+            self._send_json(400, {"error": "missing playlistId"})
+            return
+        data = self._load_music_data()
+        for pl in data["playlists"]:
+            if pl["id"] == pid:
+                pl["cover"] = cover_url
+                self._save_music_data(data)
+                self._send_json(200, {"ok": True})
+                return
+        self._send_json(404, {"error": "playlist not found"})
 
     def _handle_music_playlists_add_song(self, body: dict):
         pid = body.get("playlistId", "")
