@@ -50,5 +50,4 @@ EXPOSE 9090
 ENV PORT=9090
 ENV SUPABASE_URL=https://mwymafgqtnyepfqhujqv.supabase.co
 ENV SUPABASE_BUCKET=eryu-data
-ENV ERYU_AUTH_TOKEN=lloromannic-eryu-token-2026-♡music♡
 CMD ["/app/start.sh"]
