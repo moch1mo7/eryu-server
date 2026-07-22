@@ -37,8 +37,8 @@ if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_SERVICE_ROLE_KEY" ] && [ -n "$SUPAB
   # 退出时上传\n\
   trap "for f in /app/data/*.json; do [ -f \"$f\" ] && curl -s -X POST -H \"Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY\" -H \"apikey: $SUPABASE_SERVICE_ROLE_KEY\" --data-binary \"@$f\" \"$SUPABASE_URL/storage/v1/object/$SUPABASE_BUCKET/$(basename $f)\" > /dev/null 2>&1; done" EXIT\n\
 fi\n\
-# 内置自唤醒：每 9 分钟 self-ping，防止 Render 休眠
-(while true; do sleep 540; wget -q -O /dev/null http://localhost:9090/health || true; done) &
+# 内置自唤醒：每 9 分钟 self-ping，防止 Render 休眠\n\
+(while true; do sleep 540; wget -q -O /dev/null http://localhost:9090/health || true; done) &\n\
 exec python /app/eryu.py\n\
 ' > /app/start.sh && chmod +x /app/start.sh
 
